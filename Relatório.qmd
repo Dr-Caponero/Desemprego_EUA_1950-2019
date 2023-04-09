@@ -1,0 +1,63 @@
+---
+title: "LABORATÓRIO 3: 
+        \n Regressão Linear - Desemprego nos EUA entre 1950 a 2019"
+author: Fernando Bispo, Jeff Caponero
+format:
+    pdf:
+      toc: true
+      toc-title: Sumário
+      colorlinks: true
+      documentclass: report
+      papersize: letter
+      number-sections: false
+---
+
+
+
+
+# Introdução
+
+O presente relatório tem como objetivo a introdução das técnicas de Regressão Linear Simples e a pratica da elaboração de relatórios analíticos fundamentadas na Análise Exploratória de Dados, na resolução de análises conforme os pré-requisitos solicitados para um conjunto de dados.
+
+
+# Primeira parte
+
+## Apresentação
+
+Será realizada uma análise sobre um levantamento das taxas de desemprego e o
+índice de suicídios nos EUA para o período de 1950 a 2019, para o qual o índice de suicídios foi calculado para cada 1000 habitantes.
+
+As variáveis contidas no arquivo "desemprego.csv" são:
+
+:::{.incrementyal}
+- Ano (**ano**);
+- Taxa de Desemprego por 1000 habitantes (**desemp**);
+- Taxa de Suicídio por 1000 habitantes  (**suic**).
+:::
+
+```{r pacotes}
+#| echo: false
+#| warning: false
+
+
+set.seed(7)
+setwd("~/Dropbox/Estatística/StatisticWorks/Desemprego_EUA_1950-2019")
+
+library(pacman)
+
+pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools,
+               kableExtra, moments, ggpubr, formattable, gridExtra, 
+               glue, corrplot, sessioninfo, readxl, writexl, ggthemes,
+               patchwork,  plotly, lmtest, olsrr, gglm,
+               tidymodels, GGally, hrbrthemes)
+
+dados <- read.csv2("desemprego.csv")
+
+dados <- dados |> 
+  mutate(
+    ano = as.numeric(ano),
+    desemp = as.numeric(desemp),
+    suic = as.numeric(suic),
+  )
+```
+---
