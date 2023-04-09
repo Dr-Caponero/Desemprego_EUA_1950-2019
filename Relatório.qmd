@@ -13,14 +13,14 @@ format:
 ---
 
 
+\newpage
 
-
-# Introdução
+## Introdução
 
 O presente relatório tem como objetivo a introdução das técnicas de Regressão Linear Simples e a pratica da elaboração de relatórios analíticos fundamentadas na Análise Exploratória de Dados, na resolução de análises conforme os pré-requisitos solicitados para um conjunto de dados.
 
 
-# Primeira parte
+
 
 ## Apresentação
 
@@ -35,6 +35,25 @@ As variáveis contidas no arquivo "desemprego.csv" são:
 - Taxa de Suicídio por 1000 habitantes  (**suic**).
 :::
 
+
+## Objetivos
+
+O objetivo dessa análise visa responder aos seguintes tópicos:
+
+:::{.incrementyal}
+(a) Faça as análises necessárias para verificar se suicídios é função linear do desemprego.  
+(b) Obtenha ainda as estimativas das variâncias de $\beta_0$ e $\beta_1$.  
+(c) Teste a significância do modelo. Que conclusões você chegou com um nível de significância de 5%?  
+(d) Obtenha os intervalos de confianças para os parâmetros do modelo com o nível de 95% de confiança. Interprete os resultados.  
+:::
+
+## Análise dos dados
+
+### Análise Prévia
+
+Inicialmente vamos verificar as principais medidas resumo dos dados apresentados e verificar a viabilidade gráfica de realizar uma regressão linear a partir dos dados fornecidos.
+
+
 ```{r pacotes}
 #| echo: false
 #| warning: false
@@ -48,7 +67,7 @@ library(pacman)
 pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools,
                kableExtra, moments, ggpubr, formattable, gridExtra, 
                glue, corrplot, sessioninfo, readxl, writexl, ggthemes,
-               patchwork,  plotly, lmtest, olsrr, gglm,
+               patchwork,  plotly, lmtest, olsrr, gglm, ggplot2,
                tidymodels, GGally, hrbrthemes)
 
 dados <- read.csv2("desemprego.csv")
@@ -60,4 +79,239 @@ dados <- dados |>
     suic = as.numeric(suic),
   )
 ```
----
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| tbl-colum: page
+#| fig-pos: H
+
+
+dados|>
+  rename(
+      "Ano" = ano, "T.Desemprego" = desemp, "T.Suicídio" = suic)|>
+  select (T.Desemprego,T.Suicídio) |>
+  summarytools::descr(
+      stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
+      justify = "c",
+      style = "grid",
+      transpose = T
+  )|>
+  kbl(
+    caption = "Medidas resumo das taxas de desemprego e suicídio, \n nos EUA de 1950 a 2019",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c",
+    row.names = T,
+    col.names =
+      c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV")
+  ) |>
+  kable_material(c("striped", "hover", "condensed"))|>
+  kable_styling(
+    bootstrap_options = c("striped", "hover",  "condensed"),
+    full_width = F,
+    position = 'center', latex_options = 'HOLD_position'
+  ) |>
+  kable_material()
+```
+
+
+As medidas resumo das taxas de desemprego e suicídio avaliadas não apresetam valores incompatíveis com a análise de regressão linear pretendida.
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-align: center
+#| fig-pos: H
+
+b1 <- dados|>
+  
+  ggplot(aes(y = desemp)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = 'Taxa de Desemprego',
+    y = "Desempregados por 1000"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))
+
+
+b2 <- dados|>
+  ggplot(aes(y = suic)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = 'Taxa de Suicídio',
+    y = "Suicídio por 1000"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))
+
+
+b1+b2 + plot_annotation(
+  title = "Figura 1: BoxPlots das taxas de desemprego e suicídio, \n nos EUA de 1950 a 2019") &
+  theme_bw(base_size = 8) &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 8, hjust = 0, vjust = 0)
+  )
+
+```
+
+A análise dos BoxPlots, um pouco mais informativa, uma vez que agora é possível verificar que não há valores notadamente discrepantes que poderiam influir negativamente na regressão linear.
+
+
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-align: center
+#| fig-pos: H
+
+
+d1 <- dados |>
+  ggplot(aes(
+    y = desemp, 
+    x = suic, color = suic)) +
+  geom_point()+
+  labs(
+    title = '',
+    y = 'Taxa de Desemprego',
+    x = 'Taxa de Suicídio'
+  )+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))
+
+d1 + plot_annotation(
+  title = "Figura 2: Relação entre Taxa de Desemprego e a Taxa de Suicídio  \n entre 1950 e 2019, nos EUA") &
+  theme_bw(base_size = 8) &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 8, hjust = 0, vjust = 0)
+  )
+```
+
+A dispersão de pontos mostrada na Figura 2 não indica visualmente uma tendência linear entre as duas variáveis analizadas, o que pode comprometer todos os resultados seguintes. Adimitindo que os dados realmente possam ser explicados por uma regressão linear serão realizados as demais análises.
+
+### Regressão Linear
+
+Desta forma, uma possível reta que apresenta a regressão linear dos dados é mostrada na figura a seguir.
+
+```{r}
+#| echo: false
+#| warning: false
+#| tbl-colum: page
+
+d1<- dados |>
+  ggplot(aes(
+    y = desemp, 
+    x = suic, color = suic)) +
+  geom_point()+
+  labs(
+    title = '',
+    y = 'Taxa de Desemprego',
+    x = 'Taxa de Suicídio'
+  )+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".",
+      decimal.mark = ","
+    ))+
+  geom_smooth(method=lm, se=FALSE)
+
+d1+plot_annotation(
+  title = "Figura 3: Relação entre Taxa de Desemprego e a Taxa de Suicídio  \n entre 1950 e 2019, nos EUA e sua regressão linear.") &
+  theme_bw(base_size = 8) &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 8, hjust = 0, vjust = 0)
+  )
+```
+
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+x = dados$suic
+y = dados$desemp
+n = length(x)
+beta1 = (sum(x*y) - as.numeric(sum(x)) * as.numeric(sum(y))/n) /
+  (sum(x^2) - ((sum (x))^2)/n)
+beta0 = mean(y) - beta1 * mean(x)
+beta0 = round(beta0,3)
+beta1 = round(beta1,3)
+```
+
+### Estimativas Pontuais
+
+A partir do método de Estimativas de Mínimos Quadrados, pode se obter uma estimativa pontuais para $\hat\beta_0$ = `r beta0` e para  $\hat\beta_1$ = `r beta1`.  
+
+### Intervalos de Confiança
+
+A partir dos dados é possível obter um intervalo de confiança para as estimativas obtidas. No modelo de regressão linear simples as estimativas $\hat\beta_0$ e $\hat\beta_1$ têm distribuição de student, e portanto, pelo método da quantidade pivotal é possível determinar seu intervalo de confiança.  
+
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+t.tab = dt(0.025,n-2)
+s.xix = sum((x-mean(x))^2)
+ic.beta1 = t.tab*var(y)/(sqrt(s.xix))
+ic.beta0 = t.tab*var(y)*sqrt(sum(x^2))/(sqrt(n*s.xix))
+li.b0 = beta0 - ic.beta0
+ls.b0 = beta0 + ic.beta0
+li.b1 = beta1 - ic.beta1
+ls.b1 = beta1 + ic.beta1
+li.b0 = round(li.b0, 3)
+ls.b0 = round(ls.b0, 3)
+li.b1 = round(li.b1, 3)
+ls.b1 = round(ls.b1, 3)
+```
+
+Procedendo com esses cálculos temos que o intervalo de confiança de $\hat\beta_0$ é [`r li.b0`, `r ls.b0`] e o intervalo de confiança de $\hat\beta_1$ é [`r li.b1`, `r ls.b1`], para um nível de confiança de 95%.  
+
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+rho = (sum(x*y) - (sum(x)*sum(y)/n)) /
+  (sqrt((sum(x^2) - ((sum(x))^2)/n)*(sum(y^2)- ((sum (y))^2)/n)))
+
+rho = round(rho,3)
+
+t = rho*sqrt((n-2)/(1-rho^2))
+t.tab = dt(0.025,n-2)
+t = round(t,4)
+t.tab = round(t.tab,4)
+resp = "não deverá"
+if (abs(t)>abs(t.tab)) resp = "deverá"
+```
+
+### Teste de Significância
+
+Como vimos anteriormente, a avaliação gráfica da dispersão dos dados não indica claramente uma relação linear entre os dados avaliados. Entretanto, pode-se realizar um teste de significância do modelo a fim de melhor compreender quão adequado é esse modelo.  
+Para tanto estimou-se o valor do coeficiente de correlação linear dos dados $\hat \rho$ = `r rho`. Em seguida calculou-se o valor da estatística temos que $t$ = `r t`. Verificou-se que o valor tabelado dessa estatística $t_{(n-1);\alpha/2} =$ `r t.tab`. Por fim, comparando os valores absolutos dessas estatísticas, verificamos que a hipótese de correlação nula `r resp` ser rejeitada, ao nível de significância de $\alpha =5\%$.
+
+## Conclusão
