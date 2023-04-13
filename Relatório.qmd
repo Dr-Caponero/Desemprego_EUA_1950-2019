@@ -117,7 +117,7 @@ dados|>
 ```
 
 
-As medidas resumo das taxas de desemprego e suicídio avaliadas não apresetam valores incompatíveis com a análise de regressão linear pretendida.
+As medidas resumo das taxas de desemprego e suicídio avaliadas não apresetam valores incompatíveis com a análise de regressão linear pretendida, além de mostrarem uma provável normalidade dos dados.
 
 
 ```{r}
@@ -164,7 +164,7 @@ b1+b2 + plot_annotation(
 
 ```
 
-A análise dos BoxPlots, um pouco mais informativa, uma vez que agora é possível verificar que não há valores notadamente discrepantes que poderiam influir negativamente na regressão linear.
+A análise dos BoxPlots, um pouco mais informativa, uma vez que agora é possível verificar que não há valores notadamente discrepantes que poderiam influir negativamente na regressão linear. A provável normalidade dos dados verrificada nas medicadas ateriores não parece ter sido afetada pela análise desses gráficos, uma vez que ainda se pode identificar certa simetria nos dados. Entretanto, faz-se necessário a verificação de tal característica, o que será apresentado a seguir.
 
 
 
@@ -287,7 +287,7 @@ li.b1 = round(li.b1, 3)
 ls.b1 = round(ls.b1, 3)
 ```
 
-Procedendo com esses cálculos temos que o intervalo de confiança de $\hat\beta_0$ é [`r li.b0`, `r ls.b0`] e o intervalo de confiança de $\hat\beta_1$ é [`r li.b1`, `r ls.b1`], para um nível de confiança de 95%.  
+Procedendo com esses cálculos temos que o intervalo de confiança para $\hat\beta_0$ é [`r li.b0`, `r ls.b0`] e o intervalo de confiança de $\hat\beta_1$ é [`r li.b1`, `r ls.b1`], para um nível de confiança de 95%. É importante notar que o intervalo calculado de $\hat\beta_0$ é bastante largo, compreendendo inclusive valores negativos o que não faz sentido para os dados analizados, logo um itervalo de confiança mais realista para $\hat\beta_0$ é [0, `r ls.b0`].
 
 
 ```{r}
@@ -312,6 +312,127 @@ if (abs(t)>abs(t.tab)) resp = "deverá"
 ### Teste de Significância
 
 Como vimos anteriormente, a avaliação gráfica da dispersão dos dados não indica claramente uma relação linear entre os dados avaliados. Entretanto, pode-se realizar um teste de significância do modelo a fim de melhor compreender quão adequado é esse modelo.  
-Para tanto estimou-se o valor do coeficiente de correlação linear dos dados $\hat \rho$ = `r rho`. Em seguida calculou-se o valor da estatística temos que $t$ = `r t`. Verificou-se que o valor tabelado dessa estatística $t_{(n-1);\alpha/2} =$ `r t.tab`. Por fim, comparando os valores absolutos dessas estatísticas, verificamos que a hipótese de correlação nula `r resp` ser rejeitada, ao nível de significância de $\alpha =5\%$.
+Tomando o método dos mínimos quadrados, estimou-se o valor do coeficiente de correlação linear dos dados $\hat \rho$ = `r rho`. Em seguida calculou-se o valor da estatística temos que $t$ = `r t`. Verificou-se que o valor tabelado dessa estatística $t_{(n-1);\alpha/2} =$ `r t.tab`. Por fim, comparando os valores absolutos dessas estatísticas, verificamos que a hipótese de correlação nula `r resp` ser rejeitada, ao nível de significância de $\alpha =5\%$.  
+Outra forma de avaliar a siguinificância do modelo é realizar uma análise gráfica dos resíduos do modelo.
+
+### Residuos versus valores ajustados
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+m1 <- lm(y ~ x)
+res <- residuals(m1)
+t.bc <- MASS::boxcox(m1)
+lambda <- t.bc$x[which.max(t.bc$y)]
+ 
+```
+
+### Testes de diagnóstico
+
+Pode-se ainda utilizar um conjunto de testes de diagnóstico para completar o diagnóstico gráfico dos resíduos. Como:  
+
+:::{.incrementyal}
+- Teste de Kolmogorov-Smirnov  
+- Teste de Shapiro-Wilks  
+- Teste de Goldfeld-Quandt  
+- Teste de Breush-Pagan  
+- Teste de Park  
+- Teste F para linearidade
+- Teste para avaliação da independência dos resíduos  
+:::
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+t.ks = ks.test(res, "pnorm", mean(res), sd(res))
+```
+
+
+##### Teste de Kolmogorov-Smirnov
+
+Avalia o grau de concordância entre a distribuição de um conjunto de valores observados e determinada distribuição teórica. Consiste em comparar a distribuição de frequência acumulada da distribuição teórica com aquela observada. Realizado o teste obteve-se um p-valor de `r round(t.ks[[2]][1],3)`, o que inviabiliza rejeitar a hipótese de que haja normalidade entre os dados, com um grau de confiabilidade minimamente razoável.
+
+##### Teste de Shapiro-Wilks
+
+
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+t.sw = shapiro.test(res)
+
+```
+O teste de Shapiro-Wilks é um procedimento alternativo ao teste de Kolmogorov-Smirnov para avaliar normalidade. Realizado o teste obteve-se um p-valor de `r round(t.sw[[2]][1],3)`, o que, semelhantemente, inviabiliza rejeitar a hipótese de que haja normalidade entre os dados, com um grau de confiabilidade minimamente razoável.
+
+##### Teste de Goldfeld-Quandt
+
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+t.gq = gqtest(m1)
+
+```
+Esse teste envolve o ajuste de dois modelos de regressão, separando-se as observações das duas extremidades da distribuição da variável dependente. Realizado o teste obteve-se um p-valor de `r round(t.gq[[5]][1],3)`, o que inviabiliza rejeitar a hipótese de que haja homocedasticidade entre os dados, com um grau de confiabilidade de 95%.
+
+##### Teste de Breush-Pagan
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+
+t.bp = bptest(m1, studentize = FALSE)
+```
+Esse teste é baseado no ajuste de um modelo de regressão em que a variável dependente é definida pelos resíduos do modelo de interesse. Se grande parte da variabilidade dos resíduos é explicada pelo modelo, então rejeita-se a hipótese de homocedasticidade. Realizado o teste obteve-se um p-valor de `r round(t.bp[[4]][1],3)`, desta foram deve-se rejeitar a explicação dada pelo teste, assim, não se pode rejeitar a  hipótese de que haja homocedasticidade entre os dados, com um grau de confiabilidade minimamente razoável.
+
+##### Teste de Park 
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+res2 <- res^2
+t.p = summary(lm(res2 ~ x))
+```
+
+Esse teste é baseado no ajuste de um modelo de regressão em que a variável dependente é definida pelos quadrados dos resíduos do modelo de interesse. Nesse caso, se $\beta_1$ diferir significativamente de zero, rejeita-se a hipótese de homocedasticidade. O valor de $\beta_1$ obtido no teste foi de `r round(t.p[[4]][2],3)` com p-valor de `r round(t.p[[4]][8],3)`. Por esse teste deve-se rejeitar a hipótese de homocedasticidade, com confiabilidade de 95%.
+
+##### Teste F para linearidade
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+m_kmedias <- lm(y ~ factor(x))
+t.fl = anova(m1, m_kmedias)
+```
+O teste da falta de ajuste permite testar formalmente a adequação do ajuste do modelo de regressão. Neste ponto assumimos que os pressupostos de normalidade, variância constante e independência são satisfeitos. A ideia central para testar a linearidade é decompor SQRes em duas partes: erro puro e falta de ajuste que vão contribuir para a definição da estatística de teste F. Realizado o teste obteve-se um valore de p-vaçor igual a `r round(t.fl[[6]][2],3)`, o que inviabiliza a rejeição da hipótese que há uma relação linear entre as variáveis.
+
+##### Teste para avaliação da independência dos resíduos
+
+```{r}
+#| warning: false
+#| eval: true
+#| results: false
+#| echo: false
+t.dw = dwtest(m1)
+```
+
+O teste para avaliação da independência dos resíduos é utilizado para detectar a presença de autocorrelação provenientes de análise de regressão. Realizando o teste obteve-se um valor de p-valor aproximadadente igual a  `r round(t.dw[[4]][1],3)`, indicando que se deve rejeitar a hipotese que não existe correlação serial entre os dados, com uma confiança de 95%.
+
 
 ## Conclusão
