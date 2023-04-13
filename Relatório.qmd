@@ -308,7 +308,7 @@ Verificou-se que o valor tabelado dessa estatística $t_{(n-1);\alpha/2} =$ `r t
 Por fim, comparando os valores absolutos dessas estatísticas, verificamos que a hipótese de correlação nula `r resp` ser rejeitada, ao nível de significância de $\alpha =5\%$.\
 Outra forma de avaliar a siguinificância do modelo é realizar uma análise gráfica dos resíduos do modelo.
 
-### Residuos versus valores ajustados
+### Transformação dos valores
 
 Uma vez que o teste de significância do modelo não apresentou resultado satisfatório, pode-se avaliar a possibilidade de aplicar uma transformação no valores dos dados. Para tanto, pode-se aplicar o método de Box-Cox de avaliação da melhor transformação para os dados.  
 \   
@@ -432,7 +432,7 @@ O novo coeficiente de correlação linear dos dados $\hat \rho^*$ = `r rho`, com
 
 ### Testes de diagnóstico
 
-Pode-se ainda utilizar um conjunto de testes de diagnóstico para completar o diagnóstico gráfico dos resíduos.
+Pode-se ainda utilizar um conjunto de testes de diagnóstico para confirmar este novo teste de significância.
 Como:
 
 ::: incrementyal
@@ -549,8 +549,8 @@ O teste para avaliação da independência dos resíduos é utilizado para detec
 
 ## Conclusão
 
-Em uma análise preliminar verificou-se que os dados apresentavam certa normalidade, mas graficamente não podia se afirmar que estabelecessem uma realção linear. Aplicando-se o método dos quadrados ao modelo de regressão linear proposto, verificou-se que o mesmo não obteve o resultado desejado em um teste de significância. Por conta deste teste, propÔS-se realizar uma transformação dos dados conforme avaliação proposta por Box-Cox. A transformação logarítimica dos dados levou a uma normalização e homocedasticidade conforme verificada pelos testes realizados. Entretanto, a trasformação embora tenha obtido um resultado satisfatório em um novo teste de significância, não foi capaz de obter a mesmo resultado na avaliação de sua linearidade por um teste F. Deste impasse, tentou-se avaliar se haveria uma dependência linear entre os resíduos do modelo, o que não se provou aceitável.   
-Desta forma, embora a transformação tenha garantido as premissas para a plicação de uma regressão linear essa não foi suficiente para explicar o comportamento dos dados e isto não se deve a uma possível correlação serial dos resíduos. 
+Em uma análise preliminar verificou-se que os dados apresentavam certa normalidade, mas graficamente não podia se afirmar que estabelecessem uma realção linear. Aplicando-se o método dos quadrados ao modelo de regressão linear proposto, verificou-se que o mesmo não obteve o resultado desejado em um teste de significância. Por conta deste teste, propÔS-se realizar uma transformação dos dados conforme avaliação proposta por Box-Cox. A transformação logarítimica dos dados levou a uma normalização e homocedasticidade conforme verificada pelos testes realizados. Entretanto, a trasformação que já havia obtido um resultado insatisfatório no novo teste de significância, não foi capaz de obter um melhor resultado na avaliação de sua linearidade por um teste F. Assim, tentou-se avaliar se haveria uma dependência linear entre os resíduos do modelo, o que não se provou aceitável.   
+Desta forma, embora a transformação tenha garantido as premissas para aplicação de uma regressão linear essa não foi suficiente para explicar o comportamento dos dados e isto não se deveu a uma possível correlação serial dos resíduos. 
 
 
 
